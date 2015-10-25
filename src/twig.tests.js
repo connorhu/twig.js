@@ -38,7 +38,11 @@ var Twig = (function (Twig) {
         'null': function(value) {
             return this.none(value); // Alias of none
         },
-        sameas: function(value, params) {
+        // deprecated use same as
+        sameas: function (value, params) {
+            return Twig.tests['same as'](value, params);
+        },
+        'same as': function(value, params) {
             return value === params[0];
         },
         iterable: function(value) {

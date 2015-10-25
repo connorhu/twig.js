@@ -127,7 +127,7 @@ var Twig = (function (Twig) {
     Twig.expression.definitions = [
         {
             type: Twig.expression.type.test,
-            regex: /^is\s+(not)?\s*([a-zA-Z_][a-zA-Z0-9_]*)/,
+            regex: /^is\s+(not)?\s*(same\ as|[a-zA-Z_][a-zA-Z0-9_]*)/,
             next: Twig.expression.set.operations.concat([Twig.expression.type.parameter.start]),
             compile: function(token, stack, output) {
                 token.filter   = token.match[2];
