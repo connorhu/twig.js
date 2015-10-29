@@ -91,9 +91,11 @@ var Twig = (function (Twig) {
     var positions = [[], []];
 
     var position = -1;
+    var filename;
 
     // tokenizer state machine
-    Twig.lexer.tokenize = function (c, filename) {
+    Twig.lexer.tokenize = function (c, file) {
+        filename = file;
         code = c.replace(/\r\n*/, "\n");
         end = code.length
         
@@ -215,11 +217,13 @@ var Twig = (function (Twig) {
     }
 
     Twig.lexer.analyzeComment = function () {
-        // if (!preg_match($this->regexes['lex_comment'], $this->code, $match, PREG_OFFSET_CAPTURE, $this->cursor)) {
-        //     throw new Twig_Error_Syntax('Unclosed comment', $this->lineno, $this->filename);
-        // }
-        //
-        // $this->moveCursor(substr($this->code, $this->cursor, $match[0][1] - $this->cursor).$match[0][0]);
+        var matches = code.substr(cursor).match(regexp.lexComment)
+        
+        if (!matches) {
+            throw new Error('unclosed comment at '+ lineNumber +' filename: '+ filename);
+        }
+        
+        cursor += matches.index + matches[0].length;
     }
 
     Twig.lexer.analyzeString = function () {
