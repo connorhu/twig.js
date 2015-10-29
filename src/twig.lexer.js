@@ -25,21 +25,31 @@ var Twig = (function (Twig) {
         DQStringPart: '/[^#"\\\\]*(?:(?:\\\\.|#(?!\{))[^#"\\\\]*)*/As',
         punctuation: '()[]{}?:.,|',
         
-        lexVar: new RegExp('\s*'+ preg_quote(Twig.lexer.tags.whitespaceTrim + Twig.lexer.tags.variable[1], '/') +'\s*|\s*'+ preg_quote(Twig.lexer.tags.variable[1], '/')), // A flag?
-        lexBlock: new RegExp('/\s*(?:'+ preg_quote(Twig.lexer.tags.whitespaceTrim + Twig.lexer.tags.variable[1], '/') +'\s*|\s*'+ preg_quote(Twig.lexer.tags.variable[1], '/') +')\n?'), // A flag?
-        // 'lex_block' => '/\s*(?:'.preg_quote($this->options['whitespace_trim'].$this->options['tag_block'][1], '/').'\s*|\s*'.preg_quote($this->options['tag_block'][1], '/').')\n?/A',
-        // 'lex_raw_data' => '/('.preg_quote($this->options['tag_block'][0].$this->options['whitespace_trim'], '/').'|'.preg_quote($this->options['tag_block'][0], '/').')\s*(?:end%s)\s*(?:'.preg_quote($this->options['whitespace_trim'].$this->options['tag_block'][1], '/').'\s*|\s*'.preg_quote($this->options['tag_block'][1], '/').')/s',
-        // 'operator' => $this->getOperatorRegex(),
-        // 'lex_comment' => '/(?:'.preg_quote($this->options['whitespace_trim'], '/').preg_quote($this->options['tag_comment'][1], '/').'\s*|'.preg_quote($this->options['tag_comment'][1], '/').')\n?/s',
-        // 'lex_block_raw' => '/\s*(raw|verbatim)\s*(?:'.preg_quote($this->options['whitespace_trim'].$this->options['tag_block'][1], '/').'\s*|\s*'.preg_quote($this->options['tag_block'][1], '/').')/As',
-        // 'lex_block_line' => '/\s*line\s+(\d+)\s*'.preg_quote($this->options['tag_block'][1], '/').'/As',
+        lexVar: new RegExp('\s*'+ preg_quote(Twig.lexer.tags.whitespaceTrim + Twig.lexer.tags.variable[1], '/') 
+                        +'\s*|\s*'+ preg_quote(Twig.lexer.tags.variable[1], '/')), // flag A?
+        lexBlock: new RegExp('\s*(?:'+ preg_quote(Twig.lexer.tags.whitespaceTrim + Twig.lexer.tags.variable[1], '/') 
+                        +'\s*|\s*'+ preg_quote(Twig.lexer.tags.variable[1], '/') +')\n?'), // flag A?
+        lexRawData: new RegExp('('+ preg_quote(Twig.lexer.tags.block[0] + Twig.lexer.tags.whitespaceTrim, '/') 
+                        +'|'+ preg_quote(Twig.lexer.tags.block[0], '/') + 
+                        +')\s*(?:end%s)\s*(?:'+ preg_quote(Twig.lexer.tags.whitespaceTrim + Twig.lexer.tags.block[1], '/') 
+                        +'\s*|\s*'+ preg_quote(Twig.lexer.tags.block[1], '/') +')'), // flag s?
+        
+        operator: getOperatorRegex(),
+
+        lexComment: new RegExp('(?:'+ preg_quote(Twig.lexer.tags.whitespaceTrim , '/') 
+                        + preg_quote(Twig.lexer.tags.comment[1], '/') +'\s*|'
+                        + preg_quote(Twig.lexer.tags.comment[1], '/') +')\n?'), // flag s?
+        lexBlockRaw: new RegExp('\s*(raw|verbatim)\s*(?:'
+                        + preg_quote(Twig.lexer.tags.whitespaceTrim + Twig.lexer.tags.block[1], '/') + '\s*|\s*'
+                        + preg_quote(Twig.lexer.tags.block[1], '/') +')'), // flag As?
+        lexBlockLine: new RegExp('\s*line\s+(\d+)\s*'+ preg_quote(Twig.lexer.tags.block[1], '/')), // flag As?
         lexTokensStart: new RegExp('('+ preg_quote(Twig.lexer.tags.variable[0], '/') +
                         '|'+ preg_quote(Twig.lexer.tags.block[0], '/') +
                         '|'+ preg_quote(Twig.lexer.tags.comment[0], '/') +
-                        ')('+ preg_quote(Twig.lexer.tags.whitespaceTrim, '/') +')?', 'g') // s flag? dotall
-        // lex
-        // 'interpolation_start' => '/'.preg_quote($this->options['interpolation'][0], '/').'\s*/A',
-        // 'interpolation_end' => '/\s*'.preg_quote($this->options['interpolation'][1], '/').'/A',
+                        ')('+ preg_quote(Twig.lexer.tags.whitespaceTrim, '/') +')?', 'g'), // s flag?
+
+        interpolationStart: new RegExp(preg_quote(Twig.lexer.tags.interpolation[0], '/') +'\s*'), // flag A?
+        interpolationEnd: new RegExp('\s*'+ preg_quote(Twig.lexer.tags.interpolation[1], '/')) // flag A?
     };
     Twig.lexer.regexp = regexp;
     
@@ -218,6 +228,35 @@ var Twig = (function (Twig) {
 
     Twig.lexer.analyzeInterpolation = function () {
         
+    }
+    
+    function getOperatorRegex()
+    {
+        var operators;
+        var regexp = [];
+
+        // TODO: get this from enviromnent and extension logic
+        var unary = Object.keys(Twig.expression.operators.getUnaryOperators());
+        var binary = Object.keys(Twig.expression.operators.getBinaryOperators());
+
+        operators = unary.concat(binary, ['=']);
+        operators.forEach(function (operator) {
+            var r;
+            if (operator[operator.length-1].match(/[a-z]$/)) {
+                r = preg_quote(operator, '/') +'(?=[\s()])';
+            }
+            else {
+                r = preg_quote(operator, '/');
+            }
+            
+            r = r.replace(/\s+/, '\s+');
+            
+            regexp.push(r);
+        });
+        
+        regexp = regexp.join('|');
+        
+        return new RegExp(regexp);
     }
     
     function preg_quote(str, delimiter) {

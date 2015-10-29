@@ -13,7 +13,9 @@ var Twig = (function (Twig) {
      */
     Twig.expression.operator = {
         leftToRight: 'leftToRight',
-        rightToLeft: 'rightToLeft'
+        rightToLeft: 'rightToLeft',
+        left: 1,
+        right: 2
     };
 
     var containment = function(a, b) {
@@ -31,6 +33,177 @@ var Twig = (function (Twig) {
             return false;
         }
     };
+
+    function parseTestExpression()
+    {
+        
+    }
+    
+    function parseNotTestExpression()
+    {
+        
+    }
+
+    // TODO: init this in extension logic core
+    Twig.expression.operators = {
+        unary: {
+            'not': {
+                precedence: 50,
+                'class': 'Twig_Node_Expression_Unary_Not'
+            },
+            '-': {
+                precedence: 500,
+                'class': 'Twig_Node_Expression_Unary_Neg'
+            },
+            '+': {
+                precedence: 500,
+                'class': 'Twig_Node_Expression_Unary_Pos'
+            }
+        },
+        binary: {
+            'or': {
+                precedence: 10, 
+                'class': 'Twig_Node_Expression_Binary_Or', 
+                associativity: Twig.expression.operator.left
+            },
+            'and': {
+                precedence: 15, 
+                'class': 'Twig_Node_Expression_Binary_And', 
+                associativity: Twig.expression.operator.left
+            },
+            'b-or': {
+                precedence: 16, 
+                'class': 'Twig_Node_Expression_Binary_BitwiseOr', 
+                associativity: Twig.expression.operator.left
+            },
+            'b-xor': {
+                precedence: 17, 
+                'class':'Twig_Node_Expression_Binary_BitwiseXor', 
+                associativity: Twig.expression.operator.left
+            },
+            'b-and': {
+                precedence: 18, 
+                'class':'Twig_Node_Expression_Binary_BitwiseAnd', 
+                associativity: Twig.expression.operator.left
+            },
+            '==': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_Equal', 
+                associativity: Twig.expression.operator.left
+            },
+            '!=': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_NotEqual', 
+                associativity: Twig.expression.operator.left
+            },
+            '<': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_Less', 
+                associativity: Twig.expression.operator.left
+            },
+            '>': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_Greater', 
+                associativity: Twig.expression.operator.left
+            },
+            '>=': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_GreaterEqual', 
+                associativity: Twig.expression.operator.left
+            },
+            '<=': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_LessEqual', 
+                associativity: Twig.expression.operator.left
+            },
+            'not in': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_NotIn', 
+                associativity: Twig.expression.operator.left
+            },
+            'in': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_In', 
+                associativity: Twig.expression.operator.left
+            },
+            'matches': {
+                precedence: 20, 
+                'class':'Twig_Node_Expression_Binary_Matches', 
+                associativity: Twig.expression.operator.left
+            },
+            'starts with': {
+                precedence: 20, 
+                'class': 'Twig_Node_Expression_Binary_StartsWith', 
+                associativity: Twig.expression.operator.left
+            },
+            'ends with': {
+                precedence: 20, 
+                'class': 'Twig_Node_Expression_Binary_EndsWith', 
+                associativity: Twig.expression.operator.left
+            },
+            '..': {
+                precedence: 25, 
+                'class': 'Twig_Node_Expression_Binary_Range', 
+                associativity: Twig.expression.operator.left
+            },
+            '+': {
+                precedence: 30, 
+                'class': 'Twig_Node_Expression_Binary_Add', 
+                associativity: Twig.expression.operator.left
+            },
+            '-': {
+                precedence: 30, 
+                'class': 'Twig_Node_Expression_Binary_Sub', 
+                associativity: Twig.expression.operator.left
+            },
+            '~': {
+                precedence: 40, 
+                'class': 'Twig_Node_Expression_Binary_Concat', 
+                associativity: Twig.expression.operator.left
+            },
+            '*': {
+                precedence: 60, 
+                'class': 'Twig_Node_Expression_Binary_Mul', 
+                associativity: Twig.expression.operator.left
+            },
+            '/': {
+                precedence: 60, 
+                'class': 'Twig_Node_Expression_Binary_Div', 
+                associativity: Twig.expression.operator.left
+            },
+            '//': {
+                precedence: 60, 
+                'class': 'Twig_Node_Expression_Binary_FloorDiv', 
+                associativity: Twig.expression.operator.left
+            },
+            '%': {
+                precedence: 60, 
+                'class': 'Twig_Node_Expression_Binary_Mod', 
+                associativity: Twig.expression.operator.left
+            },
+            'is': {
+                precedence: 100,
+                'callable': parseTestExpression, 
+                associativity: Twig.expression.operator.left
+            },
+            'is not': {
+                precedence:100,
+                'callable': parseNotTestExpression, 
+                associativity: Twig.expression.operator.left
+            },
+            '**': {
+                precedence:200, 
+                'class': 'Twig_Node_Expression_Binary_Power', 
+                associativity: Twig.expression.operator.right
+            }
+        }
+    }
+    Twig.expression.operators.getUnaryOperators = function() {
+        return Twig.expression.operators.unary;
+    }
+    Twig.expression.operators.getBinaryOperators = function() {
+        return Twig.expression.operators.binary;
+    }
 
     /**
      * Get the precidence and associativity of an operator. These follow the order that C/C++ use.
