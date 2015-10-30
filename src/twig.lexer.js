@@ -21,7 +21,7 @@ var Twig = (function (Twig) {
     var regexp = {
         name: new RegExp('^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*'), // flag A
         string: new RegExp('^"([^#"\\\\]*(?:\\\\.[^#"\\\\]*)*)"|^\'([^\'\\\\]*(?:\\\\.[^\'\\\\]*)*)\''), // flag As
-        number: new RegExp('^[0-9]+(?:\.[0-9]+)?'), // flag A
+        number: new RegExp('^[0-9]+(?:\\\.[0-9]+)?'), // flag A
         DQStringDelimiter: new RegExp('^"'), // flag A
         DQStringPart: '/[^#"\\\\]*(?:(?:\\\\.|#(?!\{))[^#"\\\\]*)*/As',
         punctuation: '()[]{}?:.,|',
@@ -120,9 +120,7 @@ var Twig = (function (Twig) {
             positions[1].push(whitespaceMatch);
         }
         
-        // var i = 0;
         while (cursor < end) {
-            // console.log(state);
             switch (state) {
                 case Twig.lexer.states.data:
                     Twig.lexer.analyzeData();
@@ -144,8 +142,6 @@ var Twig = (function (Twig) {
                     Twig.lexer.analyzeInterpolation();
                     break;
             }
-            
-            // i++; if (i > 10) break;
         }
         
         pushToken(Twig.token.tokens.eof);
@@ -271,8 +267,16 @@ var Twig = (function (Twig) {
             moveCursorWithText(match[0]);
         }
         else if (null !== (match = codePart.match(regexp.number))) {
-            // console.log('num');
-            throw new Error('unimplemented');
+            var number;
+            if (match[0].indexOf('.') !== -1) {
+                number = parseFloat(match[0]);
+            }
+            else {
+                number = parseInt(match[0]);
+            }
+            
+            pushToken(Twig.token.tokens.number, number);
+            moveCursorWithText(match[0]);
         }
         else if (-1 !== code[cursor].indexOf(regexp.punctation)) {
             // console.log('punc');
@@ -285,6 +289,10 @@ var Twig = (function (Twig) {
         }
         else if (null !== (match = codePart.match(regexp.DQStringDelimiter))) {
             throw new Error('unimplemented');
+        }
+        else if (null !== (match = codePart.match(regexp.operator))) {
+            pushToken(Twig.token.tokens.operator, match[0].replace(/\s+/));
+            moveCursorWithText(match[0]);
         }
 
         // process.exit();
@@ -390,7 +398,7 @@ var Twig = (function (Twig) {
         operators.forEach(function (operator) {
             var r;
             if (operator[operator.length-1].match(/[a-z]$/)) {
-                r = preg_quote(operator, '/') +'(?=[\s()])';
+                r = preg_quote(operator, '/') +'(?=[\\\s()])';
             }
             else {
                 r = preg_quote(operator, '/');
